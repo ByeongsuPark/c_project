@@ -1,8 +1,12 @@
 #include <stdio.h>
+#include <stdbool.h>
 #include <string.h>
 #include <time.h>
 #include <stdlib.h>
 
+#define CLIENT 0
+#define BORROW 1
+#define BOOK 2
 typedef struct {
 	int clientStuId; 			// 학번
 	char *clientPw; 			// 비밀번호
@@ -234,21 +238,115 @@ BorrowNode *borrowMemAlloc(){
 
 	return head;
 }
-int main(void){
 
-	BookNode *head = bookMemAlloc();
-	BookNode *curr = head->nextNode;
+/**
+ * @author ByeongsuPark (byonsu@gmail.com)
+ *
+ * @brief borrow.txt파일로부터 대출 데이터를 읽어서
+ * 	  연결리스트 구조에 맞게 동적할당한다.
+ * 
+ * @param int type   : define된 쓸 파일 종류 ( CLIENT, BOOK, BORROW)
+ * 	  void *head : 파일에 쓸 연결리스트의 최상위 노드 
+ * 
+ * @return bool true  : 성공적으로 파일에 기록한 경우 
+ * 	 	false : 파일 기록 실패
+ */
+bool save(int type, void *head){
 
-	while( curr != NULL){
-		printf("텍스트 내용:%d|%s|%s|%s|%s|%s|%c\n", 
-			curr->book.bookId, curr->book.bookName, curr->book.bookPublisher, curr->book.bookAuthor, 
-			curr->book.bookISBN, curr->book.bookLocation, curr->book.isBookAvailable);
+	char *format;
 
-			curr = curr->nextNode;
+	switch(type){
+
+		case CLIENT:
+		{
+			FILE *ofp = fopen("client.txt", "w");
+			char *format = "%d|%s|%s|%s|%s\n";
+			ClientNode *curr = ((ClientNode *)head)->nextNode;
+
+			while( curr != NULL ){
+				fprintf(ofp, format, curr->client.clientStuId,
+					curr->client.clientPw,
+					curr->client.clientName,
+					curr->client.clientAddr,
+					curr->client.clientTel);
+
+				curr = curr->nextNode;
+			}
+
+			fclose(ofp);
+		}
+			break;
+
+		case BORROW:
+			break;
+
+		case BOOK:
+			break;
+
+
 		}
 
-	ClientNode *clientHead = clientMemAlloc();
-	ClientNode *clientCurr = clientHead->nextNode;
+	return true;
+	
+}
+
+/**
+ * @author ByeongsuPark (byonsu@gmail.com)
+ *
+ * @brief 연결리스트에 추가할 고객을 받아 
+ * 	  동일 학번 존재 여부를 확인하고
+ * 	  없는 경우 기존 연결리스트에 추가,
+ * 	  추가한 후에는 파일 반영 함수 호출
+ * 	  
+ * 
+ * @param ClientNode *head : 고객 데이터 연결리스트의 최상위 노드
+ * 	  Client     newClient : 추가할 고객 구조체
+ * 
+ * @return bool true  : 성공적으로 메모리에 등록
+ * 	 	false : 메모리에 등록 실패
+ */
+bool addClient(ClientNode *head, Client newClient){
+
+	ClientNode *curr = head->nextNode;
+
+	while( curr != NULL ){
+
+		// 동일 학번이 존재할 경우 false 리턴
+		if( curr->client.clientStuId == newClient.clientStuId){
+			printf("동일 학번 존재\n");
+			return false;
+		}
+		
+		// 노드 연결 작업 시작
+		if( curr->client.clientStuId < newClient.clientStuId)
+			if(newClient.clientStuId < curr->nextNode->client.clientStuId){
+				
+				ClientNode *newClientNode = malloc(sizeof(ClientNode));
+
+				newClientNode->client = newClient;
+				newClientNode->nextNode = curr->nextNode;
+
+				// 메모리 주소 변경
+				curr->nextNode = newClientNode;
+
+				// 추가가 성공적으로 진행됐다면 파일에 즉시 반영
+				save(CLIENT, head);
+				return true;		
+			}
+
+		curr = curr->nextNode;
+	
+	}
+
+
+
+}
+
+
+int main(void){
+
+	ClientNode *head = clientMemAlloc();
+	ClientNode *clientCurr = head->nextNode;
 
 	while( clientCurr != NULL){
 		printf("텍스트 내용:%d|%s|%s|%s|%s\n", 
@@ -258,18 +356,21 @@ int main(void){
 			clientCurr = clientCurr->nextNode;
 		}
 
-	BorrowNode *borrowHead = borrowMemAlloc();
-	BorrowNode *borrowCurr = borrowHead->nextNode;
+	Client newClient = 
+	{ 3, "123", "test", "seoul", "1234567890"};
 
-	while( borrowCurr != NULL){
-		printf("borrow 내용:%d|%d|%d|%d\n",
-			borrowCurr->borrow.clientStuId,
-			borrowCurr->borrow.bookId,
-			(int)borrowCurr->borrow.checkoutDay,
-			(int)borrowCurr->borrow.returnDay);
+	addClient(head, newClient);
+	
 
-		borrowCurr = borrowCurr->nextNode;
-	}
+	clientCurr = head->nextNode;
+	while( clientCurr != NULL){
+		printf("텍스트 내용:%d|%s|%s|%s|%s\n", 
+			clientCurr->client.clientStuId, clientCurr->client.clientPw, clientCurr->client.clientName, clientCurr->client.clientAddr, 
+			clientCurr->client.clientTel);
+
+			clientCurr = clientCurr->nextNode;
+		}
+
 
 	return 0;
 }
