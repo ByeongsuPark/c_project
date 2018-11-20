@@ -26,7 +26,7 @@ typedef struct {
 	char *bookName;				// 도서명
 	char *bookPublisher;			// 출판사
 	char *bookAuthor;			// 저자명
-	char *bookISBN;				// ISBN
+	long long  bookISBN;			// ISBN
 	char *bookLocation;			// 소장처
 	char isBookAvailable;			// 대여가능여부
 } Book;
@@ -144,20 +144,19 @@ BookNode *bookMemAlloc(){
 	Book temp;
 	BookNode *head, *curr; 
 	int check = 1;
-	char *format = "%d|%[^|]|%[^|]|%[^|]|%[^|]|%[^|]|%c\n";
+	char *format = "%d|%[^|]|%[^|]|%[^|]|%lld|%[^|]|%c\n";
 	
 	// 임시로 문자열들 담을 변수
 	char tempName[100];
 	char tempPublisher[100];
 	char tempAuthor[100];
-	char tempISBN[100];
 	char tempLocation[100];	
 
 	head = malloc(sizeof(BookNode));
 	curr = head;
 	while(check){
 
-		check = fscanf(ifp,format, &temp.bookId, tempName, tempPublisher, tempAuthor, tempISBN, tempLocation, &temp.isBookAvailable );
+		check = fscanf(ifp,format, &temp.bookId, tempName, tempPublisher, tempAuthor, &temp.bookISBN, tempLocation, &temp.isBookAvailable );
 
 		if( check == 0 || check == EOF)
 			break;
@@ -170,13 +169,11 @@ BookNode *bookMemAlloc(){
 		temp.bookName = malloc(sizeof(char)*(strlen(tempName)+1));
 		temp.bookPublisher = malloc(sizeof(char)*(strlen(tempPublisher)+1));
 		temp.bookAuthor = malloc(sizeof(char)*(strlen(tempAuthor)+1));
-		temp.bookISBN = malloc(sizeof(char)*(strlen(tempISBN)+1));
 		temp.bookLocation = malloc(sizeof(char)*(strlen(tempLocation)+1));
 
 		strcpy(temp.bookName, tempName);
 		strcpy(temp.bookPublisher, tempPublisher);
 		strcpy(temp.bookAuthor, tempAuthor);
-		strcpy(temp.bookISBN, tempISBN);
 		strcpy(temp.bookLocation, tempLocation);
 
 		curr->book = temp; // 데이터 노드에 복사
@@ -281,6 +278,25 @@ bool save(int type, void *head){
 			break;
 
 		case BOOK:
+		{
+			FILE *ofp = fopen("book.txt", "w");
+			char *format = "%d|%s|%s|%s|%lld|%s|%c\n";
+			BookNode *curr = ((BookNode *)head)->nextNode;
+
+			while( curr != NULL ){
+				fprintf(ofp, format, curr->book.bookId,
+					curr->book.bookName,
+					curr->book.bookPublisher,
+					curr->book.bookAuthor,
+					curr->book.bookISBN,
+					curr->book.bookLocation,
+					curr->book.isBookAvailable);
+
+				curr = curr->nextNode;
+			}
+
+			fclose(ofp);
+		}
 			break;
 
 
@@ -370,33 +386,107 @@ bool addClient(ClientNode *head, Client newClient){
 
 }
 
+/**
+ * @author ByeongsuPark (byonsu@gmail.com)
+ *
+ * @brief 연결리스트에 추가할 책을 받아 
+ * 	  ISBN 값을 비교하여 기존 연결리스트에 추가,
+ * 	  추가한 후에는 파일 반영 함수 호출
+ * 	  
+ * 
+ * @param BookNode *head : 책 데이터 연결리스트의 최상위 노드
+ * 	  Book   newBook : 추가할 책 구조체
+ * 
+ * @return bool true  : 성공적으로 메모리에 등록
+ * 	 	false : 메모리에 등록 실패
+ */
+bool addBook(BookNode *head, Book newBook){
+
+	BookNode *curr = head->nextNode;
+
+	while( curr != NULL ){
+
+		
+		// 노드 연결 작업 시작
+		if( newBook.bookISBN < curr->book.bookISBN) // 맨 첫번째 노드로 삽입되는 경우
+		{
+			BookNode *newBookNode= malloc(sizeof(BookNode));
+			newBookNode->book = newBook;
+			newBookNode->nextNode = curr->nextNode;
+
+			head->nextNode = newBookNode;
+
+			save(BOOK, head);
+
+			return true;
+
+		}else if( curr->book.bookISBN< newBook.bookISBN && curr->nextNode == NULL){ // 마지막노드일 경우
+		
+				BookNode *newBookNode = malloc(sizeof(BookNode));
+
+				newBookNode->book= newBook;
+				newBookNode->nextNode = NULL;
+
+				curr->nextNode = newBookNode;
+
+				save(BOOK, head);
+
+				return true;
+
+		}else if( curr->book.bookISBN < newBook.bookISBN){ // 중간에 추가되는 경우
+			if(newBook.bookISBN < curr->nextNode->book.bookISBN){
+				
+				BookNode *newBookNode= malloc(sizeof(BookNode));
+
+				newBookNode->book= newBook;
+				newBookNode->nextNode = curr->nextNode;
+
+				// 메모리 주소 변경
+				curr->nextNode = newBookNode;
+
+				// 추가가 성공적으로 진행됐다면 파일에 즉시 반영
+				save(BOOK, head);
+				return true;		
+			}
+		}
+
+		curr = curr->nextNode;
+	
+	}
+
+
+
+}
 
 int main(void){
 
-	ClientNode *head = clientMemAlloc();
-	ClientNode *clientCurr = head->nextNode;
+	BookNode *head = bookMemAlloc();
+	BookNode *bookCurr = head->nextNode;
 
-	while( clientCurr != NULL){
-		printf("텍스트 내용:%d|%s|%s|%s|%s\n", 
-			clientCurr->client.clientStuId, clientCurr->client.clientPw, clientCurr->client.clientName, clientCurr->client.clientAddr, 
-			clientCurr->client.clientTel);
+	while( bookCurr != NULL){
+		printf("텍스트 내용:%d|%s|%s|%s|%lld|%s|%c\n", 
+			bookCurr->book.bookId, bookCurr->book.bookName, bookCurr->book.bookPublisher, bookCurr->book.bookAuthor,
+			bookCurr->book.bookISBN,
+			bookCurr->book.bookLocation,
+			bookCurr->book.isBookAvailable);
 
-			clientCurr = clientCurr->nextNode;
+			bookCurr = bookCurr->nextNode;
 		}
 
-	Client newClient = 
-	{ 5, "123", "test", "seoul", "1234567890"};
+	Book newBook = 
+	{ 123456, "book3", "any publisher", "anyauthor", 3, "soongsil", 'Y'};
 
-	addClient(head, newClient);
-	
+	addBook(head , newBook);	
 
-	clientCurr = head->nextNode;
-	while( clientCurr != NULL){
-		printf("텍스트 내용:%d|%s|%s|%s|%s\n", 
-			clientCurr->client.clientStuId, clientCurr->client.clientPw, clientCurr->client.clientName, clientCurr->client.clientAddr, 
-			clientCurr->client.clientTel);
+	bookCurr = head->nextNode;
+	while( bookCurr != NULL){
+		printf("텍스트 내용:%d|%s|%s|%s|%lld|%s|%c\n", 
+			bookCurr->book.bookId, bookCurr->book.bookName, bookCurr->book.bookPublisher, bookCurr->book.bookAuthor,
+			bookCurr->book.bookISBN,
+			bookCurr->book.bookLocation,
+			bookCurr->book.isBookAvailable);
 
-			clientCurr = clientCurr->nextNode;
+			bookCurr = bookCurr->nextNode;
 		}
 
 
