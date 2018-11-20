@@ -318,21 +318,49 @@ bool addClient(ClientNode *head, Client newClient){
 		}
 		
 		// 노드 연결 작업 시작
-		if( curr->client.clientStuId < newClient.clientStuId)
-			if(newClient.clientStuId < curr->nextNode->client.clientStuId){
-				
+		if( newClient.clientStuId < curr->client.clientStuId) // 맨 첫번째 노드로 삽입되는 경우
+		{
+			ClientNode *newClientNode= malloc(sizeof(ClientNode));
+			newClientNode->client = newClient;
+			newClientNode->nextNode = curr->nextNode;
+
+			head->nextNode = newClientNode;
+
+			save(CLIENT, head);
+
+			return true;
+
+		}else if( curr->client.clientStuId< newClient.clientStuId && curr->nextNode == NULL){ // 마지막노드일 경우
+		
 				ClientNode *newClientNode = malloc(sizeof(ClientNode));
 
-				newClientNode->client = newClient;
+				newClientNode->client= newClient;
+				newClientNode->nextNode = NULL;
+
+				curr->nextNode = newClientNode;
+;
+
+				save(CLIENT, head);
+
+				return true;
+
+		}else if( curr->client.clientStuId < newClient.clientStuId){ // 중간에 추가되는 경우
+			if(newClient.clientStuId < curr->nextNode->client.clientStuId){
+				
+				ClientNode *newClientNode= malloc(sizeof(ClientNode));
+
+				newClientNode->client= newClient;
 				newClientNode->nextNode = curr->nextNode;
 
 				// 메모리 주소 변경
 				curr->nextNode = newClientNode;
+;
 
 				// 추가가 성공적으로 진행됐다면 파일에 즉시 반영
 				save(CLIENT, head);
 				return true;		
 			}
+		}
 
 		curr = curr->nextNode;
 	
@@ -357,7 +385,7 @@ int main(void){
 		}
 
 	Client newClient = 
-	{ 3, "123", "test", "seoul", "1234567890"};
+	{ 5, "123", "test", "seoul", "1234567890"};
 
 	addClient(head, newClient);
 	
