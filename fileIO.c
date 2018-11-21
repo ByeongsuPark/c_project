@@ -587,10 +587,59 @@ bool removeClient(ClientNode *clientHead,BorrowNode *borrowHead, int targetStuId
 
 	}
 
+/**
+ * @author ByeongsuPark (byonsu@gmail.com)
+ *
+ * @brief 삭제할 책의 도서 번호를 입력받아서
+ * 	  해당 책이 대여 중인지 확인한다.
+ * 	  대여중인 경우 false를 리턴한다.
+ * 	  대여중이지 않은 경우 책 연결리스트에서 해당 책을 삭제 후
+ * 	  해당 변경사항을 파일에 반영한다.
+ * 	  
+ * @param BookNode   *bookHead   : 책 연결리스트의 최상위 노드
+ * 	  BorrowNode *borrowHead : 대여 목록 연결리스트의 최상위 노드 
+ * 	  int  	    targetBookId : 삭제할 책의 도서번호
+ * 
+ * @return bool true : 성공적으로 삭제
+ * 		false : 삭제 실패 ( 해당 도서번호의 책이  대여중 ) 
+ */
+bool removeBook(BookNode *bookHead,BorrowNode *borrowHead, int targetBookId){
+
+	BookNode   *bookCurr = bookHead->nextNode;
+	BorrowNode *borrowCurr = borrowHead->nextNode;
+
+	// 대여 목록에 해당 도서번호가 있을 경우 삭제 불가
+	while( borrowCurr != NULL ){
+		if( borrowCurr->borrow.bookId == targetBookId)
+			return false;
+
+		borrowCurr = borrowCurr->nextNode;
+	}
+
+	BookNode *previousNode = bookHead;
+
+	// 없다면 삭제 작업
+	while( bookCurr != NULL ){
+	
+		if( bookCurr->book.bookId== targetBookId){
+			previousNode->nextNode = bookCurr->nextNode;
+
+			free(bookCurr);
+
+			save(BOOK, bookHead);
+
+			return true;
+		}
+
+		previousNode = bookCurr;
+		bookCurr = bookCurr->nextNode;
+		}
+
+	}
 int main(void){
 
-	BookNode *head = bookMemAlloc();
-	BookNode *bookCurr = head->nextNode;
+	BookNode *bookHead= bookMemAlloc();
+	BookNode *bookCurr = bookHead->nextNode;
 
 	while( bookCurr != NULL){
 		printf("텍스트 내용:%d|%s|%s|%s|%lld|%s|%c\n", 
@@ -605,10 +654,10 @@ int main(void){
 	ClientNode *clientHead = clientMemAlloc();
 	BorrowNode *borrowHead = borrowMemAlloc();
 
-	if(removeClient(clientHead, borrowHead, 20170284))
+	if(removeBook(bookHead, borrowHead, 5))
 		printf("삭제 성공\n");
 	else
-		printf("삭제 실패. 대출 중인 도서가 있습니다.\n");
+		printf("삭제 실패. 대출 중인 도서입니다.\n");
 
 
 
