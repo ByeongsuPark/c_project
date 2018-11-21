@@ -499,7 +499,11 @@ BookNode *searchBy(BookNode *head, int criteria, Book value){
 				break;
 
 			case PUBLISHER:
-
+				if(strstr( curr->book.bookPublisher , value.bookPublisher ) != NULL){
+					resultCurr->nextNode = malloc(sizeof(BookNode));
+					resultCurr = resultCurr->nextNode;
+					resultCurr->book = curr->book;
+				}
 				break;
 
 			case ISBN:
@@ -541,8 +545,8 @@ int main(void){
 			bookCurr = bookCurr->nextNode;
 		}
 
-	Book value = { .bookName="book" };
-	BookNode *result =searchBy( head, BOOK_NAME, value );
+	Book value = { .bookPublisher="byeongsu" };
+	BookNode *result =searchBy( head, PUBLISHER, value );
 
 	result = result->nextNode;
 
