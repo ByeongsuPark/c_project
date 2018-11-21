@@ -507,15 +507,24 @@ BookNode *searchBy(BookNode *head, int criteria, Book value){
 				break;
 
 			case ISBN:
+				if( curr->book.bookISBN == value.bookISBN ){
+					resultCurr->nextNode = malloc(sizeof(BookNode));
+					resultCurr = resultCurr->nextNode;
+					resultCurr->book = curr->book;
+				}
 
 				break;
 
 			case AUTHOR:
-
+				if(strstr( curr->book.bookAuthor, value.bookAuthor ) != NULL){
+					resultCurr->nextNode = malloc(sizeof(BookNode));
+					resultCurr = resultCurr->nextNode;
+					resultCurr->book = curr->book;
+				}
 				break;
 
 			case ALL:
-
+				return head; 
 				break;
 			}
 
@@ -545,11 +554,12 @@ int main(void){
 			bookCurr = bookCurr->nextNode;
 		}
 
-	Book value = { .bookPublisher="byeongsu" };
-	BookNode *result =searchBy( head, PUBLISHER, value );
+	Book value = { .bookISBN= 4 };
+	BookNode *result =searchBy( head, ALL, value );
 
 	result = result->nextNode;
 
+	printf("검색 결과\n");
 	while( result != NULL){
 		printf("텍스트 내용:%d|%s|%s|%s|%lld|%s|%c\n", 
 			result->book.bookId, result->book.bookName, result->book.bookPublisher, result->book.bookAuthor,
