@@ -281,6 +281,22 @@ bool save(int type, void *head){
 			break;
 
 		case BORROW:
+		{
+			FILE *ofp = fopen("borrow.txt", "w");
+			char *format = "%d|%d|%d|%d\n";
+			BorrowNode *curr = ((BorrowNode *)head)->nextNode;
+
+			while( curr != NULL ){
+				fprintf(ofp, format, curr->borrow.clientStuId,
+					curr->borrow.bookId,
+					(int)curr->borrow.checkoutDay,
+					(int)curr->borrow.returnDay);
+
+				curr = curr->nextNode;
+			}
+
+			fclose(ofp);
+		}
 			break;
 		case BOOK:
 		{
@@ -466,6 +482,55 @@ bool addBook(BookNode *head, Book newBook){
 /**
  * @author ByeongsuPark (byonsu@gmail.com)
  *
+ * @brief 추가할 대여 구조체를 받아
+ * 	  기존의 대여 연결리스트에 추가한다.
+ * 	  기존의 책 연결리스트에서 대여되는 도서의 도서번호를 찾아
+ * 	  대여 가능 여부를 N으로 바꾼다.
+ * 	  최종적으로 둘의 변경사항을 파일에 반영 한다.
+ * 	  
+ * @param BookNode    *bookHead  : 책 연결리스트의 최상위 노드
+ * 	  BorrowNode  *borrwHead : 대여 데이터 연결리스트의 최상위 노드
+ * 	  Borrow       newBorrow : 추가할 대여 데이터 관련 구조체
+ * 
+ * @return bool true  : 정상적으로 파일 반영 
+ * 		false : 파일 반영 실패  					
+ */
+bool addBorrow(BookNode *bookHead, BorrowNode *borrowHead, Borrow newBorrow){
+
+	BorrowNode *borrowCurr = borrowHead;
+	BookNode *bookCurr = bookHead->nextNode;
+
+	// 마지막 노드 까지 돌리고 돌리고~
+	while( borrowCurr->nextNode != NULL )
+	{
+		borrowCurr = borrowCurr->nextNode;
+	}
+	// 대여 연결리스트에 새로운 노드 삽입
+	borrowCurr->nextNode = malloc(sizeof(BorrowNode));
+	borrowCurr = borrowCurr->nextNode;
+	borrowCurr->borrow = newBorrow;
+	borrowCurr->nextNode = NULL;
+
+	// 대여 가능 여부 변경
+	while( bookCurr != NULL)
+	{
+		if( bookCurr->book.bookId == newBorrow.bookId )
+			bookCurr->book.isBookAvailable = 'N';
+
+		bookCurr = bookCurr->nextNode;
+	}
+
+	// 변경사항 파일 반영
+	save(BORROW, borrowHead);
+	save(BOOK, bookHead);
+
+	return true;
+}
+
+
+/**
+ * @author ByeongsuPark (byonsu@gmail.com)
+ *
  * @brief 검색할 책에 대한 구조체를 받아 
  * 	  원하는 기준(criteria)로 검색을 수행,
  * 	  수행한 후에는 결과가 저장된 BookNode의 연결리스트 리턴
@@ -636,6 +701,7 @@ bool removeBook(BookNode *bookHead,BorrowNode *borrowHead, int targetBookId){
 		}
 
 	}
+
 int main(void){
 
 	BookNode *bookHead= bookMemAlloc();
@@ -654,11 +720,9 @@ int main(void){
 	ClientNode *clientHead = clientMemAlloc();
 	BorrowNode *borrowHead = borrowMemAlloc();
 
-	if(removeBook(bookHead, borrowHead, 5))
-		printf("삭제 성공\n");
-	else
-		printf("삭제 실패. 대출 중인 도서입니다.\n");
+	Borrow test = { .clientStuId = 3, .bookId = 2 }; 
 
+	addBorrow(bookHead, borrowHead, test);
 
 
 	return 0;
