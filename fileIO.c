@@ -7,6 +7,12 @@
 #define CLIENT 0
 #define BORROW 1
 #define BOOK 2
+
+#define BOOK_NAME 0
+#define PUBLISHER 1
+#define ISBN      2
+#define AUTHOR    3
+#define ALL       4
 typedef struct {
 	int clientStuId; 			// 학번
 	char *clientPw; 			// 비밀번호
@@ -276,7 +282,6 @@ bool save(int type, void *head){
 
 		case BORROW:
 			break;
-
 		case BOOK:
 		{
 			FILE *ofp = fopen("book.txt", "w");
@@ -458,6 +463,69 @@ bool addBook(BookNode *head, Book newBook){
 
 }
 
+/**
+ * @author ByeongsuPark (byonsu@gmail.com)
+ *
+ * @brief 검색할 책에 대한 구조체를 받아 
+ * 	  원하는 기준(criteria)로 검색을 수행,
+ * 	  수행한 후에는 결과가 저장된 BookNode의 연결리스트 리턴
+ * 	  
+ * @param BookNode *head : 책 연결리스트의 최상위 노드
+ * 	  int criteria : 검색 기준( 도서명, 출판사, ISBN등등..)
+ * 			 이미 define되어 있음.
+ * 	  Book value   : 검색 값을 저장한 Book 구조체
+ * 
+ * @return BookNode *searchResultHead : 검색 결과.
+ * 					검색 결과가 0 일경우
+ * 					다음 노드의 값이 NULL
+ */
+BookNode *searchBy(BookNode *head, int criteria, Book value){
+
+	BookNode *resultHead = malloc(sizeof(BookNode));
+	BookNode *curr = head->nextNode;
+	BookNode *resultCurr = resultHead;
+
+
+	while( curr != NULL ){
+		switch(criteria){
+
+			case BOOK_NAME:
+			
+				if(strstr( curr->book.bookName , value.bookName) != NULL){ // 이름이 검색될경우
+					resultCurr->nextNode = malloc(sizeof(BookNode));
+					resultCurr = resultCurr->nextNode;
+					resultCurr->book = curr->book; // 결과 연결리스트에 현재 노드 추가
+				}
+				break;
+
+			case PUBLISHER:
+
+				break;
+
+			case ISBN:
+
+				break;
+
+			case AUTHOR:
+
+				break;
+
+			case ALL:
+
+				break;
+			}
+
+			curr = curr->nextNode;
+		}
+
+			resultCurr->nextNode = NULL;
+	
+
+
+
+	return resultHead;
+
+}
 int main(void){
 
 	BookNode *head = bookMemAlloc();
@@ -473,20 +541,19 @@ int main(void){
 			bookCurr = bookCurr->nextNode;
 		}
 
-	Book newBook = 
-	{ 123456, "book3", "any publisher", "anyauthor", 3, "soongsil", 'Y'};
+	Book value = { .bookName="book" };
+	BookNode *result =searchBy( head, BOOK_NAME, value );
 
-	addBook(head , newBook);	
+	result = result->nextNode;
 
-	bookCurr = head->nextNode;
-	while( bookCurr != NULL){
+	while( result != NULL){
 		printf("텍스트 내용:%d|%s|%s|%s|%lld|%s|%c\n", 
-			bookCurr->book.bookId, bookCurr->book.bookName, bookCurr->book.bookPublisher, bookCurr->book.bookAuthor,
-			bookCurr->book.bookISBN,
-			bookCurr->book.bookLocation,
-			bookCurr->book.isBookAvailable);
+			result->book.bookId, result->book.bookName, result->book.bookPublisher, result->book.bookAuthor,
+			result->book.bookISBN,
+			result->book.bookLocation,
+			result->book.isBookAvailable);
 
-			bookCurr = bookCurr->nextNode;
+			result = result->nextNode;
 		}
 
 
