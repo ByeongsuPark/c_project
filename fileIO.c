@@ -702,6 +702,59 @@ bool removeBook(BookNode *bookHead,BorrowNode *borrowHead, int targetBookId){
 
 	}
 
+/**
+ * @author ByeongsuPark (byonsu@gmail.com)
+ *
+ * @brief 반납할 책의 도서 번호를 입력받아서
+ * 	  해당 번호 도서를 대여 목록에서 삭제한다.
+ * 	  또한 해당 책의 대여 가능 여부를 Y로 바꾼다.
+ * 	  최종적으로 해당 변경사항을 파일에 반영한다.
+ * 	  
+ * @param BookNode   *bookHead   : 책 연결리스트의 최상위 노드
+ * 	  BorrowNode *borrowHead : 대여 목록 연결리스트의 최상위 노드 
+ * 	  int  	    targetBookId : 삭제할 책의 도서번호
+ * 
+ * @return bool true : 성공적으로 삭제
+ * 		false : 삭제 실패 
+ */
+bool removeBorrow(BookNode *bookHead,BorrowNode *borrowHead, int targetBookId){
+
+	BookNode   *bookCurr = bookHead->nextNode;
+	BorrowNode *borrowCurr = borrowHead->nextNode;
+
+	BorrowNode *previousNode = borrowHead;
+
+	// 해당 대여 데이터를 메모리에서 삭제
+	while( borrowCurr != NULL ){
+		printf("데이터 메모리 삭제 함수 진입\n");
+		if( borrowCurr->borrow.bookId == targetBookId){
+			if(borrowCurr->nextNode != NULL) // 마지막 노드 같은 경우는 그냥 메모리 해제만 해주면 됨
+				previousNode->nextNode = borrowCurr->nextNode;
+			else
+				previousNode->nextNode = NULL;
+
+			free(borrowCurr);
+
+			break;
+		}
+		previousNode = borrowCurr;
+		borrowCurr = borrowCurr->nextNode;
+	}
+
+	while( bookCurr != NULL)
+	{
+		if( bookCurr->book.bookId == targetBookId )
+			bookCurr->book.isBookAvailable = 'Y';
+
+		bookCurr = bookCurr->nextNode;
+	}
+
+	// 변경사항 파일 반영
+	save(BORROW, borrowHead);
+	save(BOOK, bookHead);
+
+	}
+
 int main(void){
 
 	BookNode *bookHead= bookMemAlloc();
@@ -722,7 +775,7 @@ int main(void){
 
 	Borrow test = { .clientStuId = 3, .bookId = 2 }; 
 
-	addBorrow(bookHead, borrowHead, test);
+	removeBorrow(bookHead, borrowHead, 2);
 
 
 	return 0;
