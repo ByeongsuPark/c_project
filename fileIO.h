@@ -8,11 +8,11 @@
 #define BORROW 1
 #define BOOK 2
 
-#define BOOK_NAME 0
-#define PUBLISHER 1
-#define ISBN      2
-#define AUTHOR    3
-#define ALL       4
+#define BOOK_NAME 1 
+#define PUBLISHER 2
+#define ISBN      3
+#define AUTHOR    4
+#define ALL       5
 typedef struct {
 	int clientStuId; 			// 학번
 	char *clientPw; 			// 비밀번호
