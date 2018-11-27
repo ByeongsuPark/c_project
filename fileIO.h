@@ -670,8 +670,10 @@ bool removeClient(ClientNode *clientHead,BorrowNode *borrowHead, int targetStuId
  */
 bool removeBook(BookNode *bookHead,BorrowNode *borrowHead, int targetBookId){
 
+	BorrowNode *borrowCurr = NULL;
 	BookNode   *bookCurr = bookHead->nextNode;
-	BorrowNode *borrowCurr = borrowHead->nextNode;
+	if( borrowHead != NULL) // 도서 검색에서 쓸수 있도록 범용성 고려 
+		borrowCurr = borrowHead->nextNode;
 
 	// 대여 목록에 해당 도서번호가 있을 경우 삭제 불가
 	while( borrowCurr != NULL ){
@@ -691,7 +693,8 @@ bool removeBook(BookNode *bookHead,BorrowNode *borrowHead, int targetBookId){
 
 			free(bookCurr);
 
-			save(BOOK, bookHead);
+			if( borrowCurr != NULL)
+				save(BOOK, bookHead);
 
 			return true;
 		}
