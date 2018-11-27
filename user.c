@@ -10,10 +10,17 @@
 void user_search(BookNode *);
 void printResult(BookNode *);
 int *checkAvailable(BookNode *, BookNode *);
+void printMyBorrow(BorrowNode *, Client );
+char *getBookNameById(BookNode *, int );
+
+Client myClient = { .clientStuId = 20170283 };
+BookNode *bookHead;
 
 int main(void){
 
-	BookNode *head = bookMemAlloc();
+	bookHead = bookMemAlloc();
+
+	printf("%d\n", myClient.clientStuId);
 
 	while(1){
 		int choice;
@@ -30,10 +37,11 @@ int main(void){
 		switch(choice){
 
 		case SEARCH:
-			user_search(head);
+			user_search(bookHead);
 			break;
 	
 		case MY_BORROW:
+			printMyBorrow(borrowMemAlloc(), myClient);
 	
 			break;
 		case MODIFY_CLIENT:
@@ -51,6 +59,61 @@ int main(void){
 
 }
 
+void printMyBorrow(BorrowNode *head, Client myClient){
+	
+	char *wday[7] = { "일", "월", "화", "수", "목", "금", "토"};
+	BorrowNode *curr = head->nextNode;
+
+	printf("\n>>내 대여 목록<<\n");
+	while( curr != NULL){
+
+		if( curr->borrow.clientStuId == myClient.clientStuId){
+			printf("%d 학번의 대여 이력 발견\n", myClient.clientStuId);
+			time_t borrowTime = (time_t)curr->borrow.checkoutDay;
+			time_t returnTime = (time_t)curr->borrow.returnDay;
+
+			struct tm *borrow_t = localtime(&borrowTime);
+			struct tm *return_t = localtime(&returnTime);
+
+
+			printf("도서번호 : %d\n", curr->borrow.bookId);
+			printf("도서명 : %s\n", getBookNameById(bookHead, curr->borrow.bookId));
+			printf("대여일자: %d년 %d월 %d일 %s요일\n",
+				borrow_t->tm_year + 1900,
+				borrow_t->tm_mon + 1,
+				borrow_t->tm_mday,
+				wday[borrow_t->tm_wday]);
+
+			printf("반납일자: %d년 %d월 %d일 %s요일\n",
+				return_t->tm_year + 1900,
+				return_t->tm_mon + 1,
+				return_t->tm_mday,
+				wday[return_t->tm_wday]);
+
+		}
+
+
+		curr = curr->nextNode;
+
+	}
+
+
+}
+
+char *getBookNameById(BookNode *bookHead, int targetBookId){
+
+	BookNode *curr = bookHead->nextNode;
+
+	while( curr != NULL ){
+
+		if( curr->book.bookId == targetBookId)
+			return curr->book.bookName;
+
+		curr = curr->nextNode;
+
+	}
+
+}
 
 void user_search(BookNode *head){
 
