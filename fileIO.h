@@ -429,7 +429,7 @@ bool addBook(BookNode *head, Book newBook){
 
 		
 		// 노드 연결 작업 시작
-		if( newBook.bookISBN < curr->book.bookISBN) // 맨 첫번째 노드로 삽입되는 경우
+		if( newBook.bookISBN <= curr->book.bookISBN) // 맨 첫번째 노드로 삽입되는 경우
 		{
 			BookNode *newBookNode= malloc(sizeof(BookNode));
 			newBookNode->book = newBook;
@@ -441,7 +441,7 @@ bool addBook(BookNode *head, Book newBook){
 
 			return true;
 
-		}else if( curr->book.bookISBN< newBook.bookISBN && curr->nextNode == NULL){ // 마지막노드일 경우
+		}else if( curr->book.bookISBN <= newBook.bookISBN && curr->nextNode == NULL){ // 마지막노드일 경우
 		
 				BookNode *newBookNode = malloc(sizeof(BookNode));
 
@@ -454,7 +454,7 @@ bool addBook(BookNode *head, Book newBook){
 
 				return true;
 
-		}else if( curr->book.bookISBN < newBook.bookISBN){ // 중간에 추가되는 경우
+		}else if( curr->book.bookISBN <= newBook.bookISBN){ // 중간에 추가되는 경우
 			if(newBook.bookISBN < curr->nextNode->book.bookISBN){
 				
 				BookNode *newBookNode= malloc(sizeof(BookNode));
