@@ -34,7 +34,7 @@ AdminMenu:
   printf("5. 도서 검색\t 6. 회원 목록\n");
   printf("7. 로그아웃\t 8. 프로그램 종료\n");
   printf("\n");
-  printf("번호를 선댁하세요: ");
+  printf("번호를 선택하세요: ");
   int num, c;
   bool check;
   scanf("%d", &num);
