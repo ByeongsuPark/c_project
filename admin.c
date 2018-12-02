@@ -20,10 +20,14 @@ void addNewBook();
 void delBook();
 void borrBook();
 void ReturnBook();
+bool clientList();
+
 char *NumToDay(struct tm *);
 bool SearchBook(char *);
 
 int main(void){
+AdminMenu:
+  system("clear");
   printf(">>관리자 메뉴<<\n");
   printf("1. 도서 등록\t 2. 도서 삭제\n");
   printf("3. 도서 대여\t 4. 도서 반납\n");
@@ -31,8 +35,10 @@ int main(void){
   printf("7. 로그아웃\t 8. 프로그램 종료\n");
   printf("\n");
   printf("번호를 선댁하세요: ");
-  int num;
+  int num, c;
+  bool check;
   scanf("%d", &num);
+  while(c = getchar() != '\n' && c != EOF);
 
   if(num == 1){
 	  addNewBook();
@@ -48,16 +54,23 @@ int main(void){
 	  ReturnBook();
   }
   else if(num == 5){
+	/*회원용 도서검색기능 그대로 사용*/
   }
   else if(num == 6){
+	  check = clientList();
+	  if(check == false){
+		goto AdminMenu;
+	  }
   }
   else if(num == 7){
+	/*도서관 서비스 초기화면으로 이동하는 함수 그대로 사용*/
   }
   else if(num == 8){
 	  printf("프로그램을 종료합니다.");
+	  system("exit");
   }
   else{
-	  printf("잘못된 입력입니다.");
+	  goto AdminMenu;
   }
   return 0;
 }
@@ -78,7 +91,6 @@ void addNewBook(){
 	printf(">>도서 등록<<\n");
 	printf("\n");
 	printf("도서명: ");
-	while(c = getchar() != '\n' && c != EOF);
 	scanf("%[^\n]", newbName);
 	while(c = getchar() != '\n' && c != EOF);
 	printf("출판사: ");
@@ -250,7 +262,7 @@ void ReturnBook(){
   BorrowNode *borrowHead = borrowMemAlloc(), *br_head = NULL;
   BookNode *bookHead = bookMemAlloc(), *b_head = NULL;
   bool check = false;
-  char *tempBookName, *thatDay;
+  char *tempBookName = NULL, *thatDay = NULL;
   struct tm *day;
   time_t day_t;
   
@@ -308,6 +320,115 @@ void ReturnBook(){
 }/*학번을 입력받으면 회원이 대여한 도서의 목록을 보여준다.
    도서번호를 입력받아 도서를 반납한다.*/
 
+bool clientList(){
+ClientListMenu:
+  system("clear");
+  printf(">>회원 목록<<\n");
+  printf("1.이름 검색 2.학번 검색\n");
+  printf("3.전체 검색 4.이전 메뉴\n");
+  printf("\n");
+  printf("번호를 선택하세요: ");
+  int num, c, diff=0, CountLoop=0, targetStuId;
+  char targetStuName[30];
+  ClientNode *clientHead = clientMemAlloc();
+  scanf("%d", &num);
+  while(c = getchar() != '\n' && c != EOF);
+
+  if(num == 1){
+	printf("이름을 입력하세요: ");
+	scanf("%[^\n]", targetStuName);
+	while(c = getchar() != '\n' && c != EOF);
+	printf("\n");
+	printf(">>검색 결과<<\n");
+	while(clientHead->nextNode != NULL){
+	  clientHead = clientHead->nextNode;
+	  CountLoop++;
+	  if(strcmp(clientHead->client.clientName, targetStuName) == 0){
+		printf("학번: %d\n", clientHead->client.clientStuId);
+		printf("비밀번호: %s\n", clientHead->client.clientPw);
+		printf("이름: %s\n", clientHead->client.clientName);
+		printf("주소: %s\n", clientHead->client.clientAddr);
+		printf("전화번호: %s\n", clientHead->client.clientTel);
+		printf("\n");
+	  }
+	  else{
+		diff++;
+	  }
+	}
+
+	if(diff == CountLoop){
+	  printf("일치하는 이름이 없습니다.\n");
+	}
+	return true;
+  }
+
+  else if(num == 2){
+	printf("학번을 입력하세요: ");
+	scanf("%d",&targetStuId);
+	while(c = getchar() != '\n' && c != EOF);
+	printf("\n");
+	printf(">>검색 결과<<\n");
+	while(clientHead->nextNode != NULL){
+	  clientHead = clientHead->nextNode;
+	  CountLoop++;
+	  if(clientHead->client.clientStuId == targetStuId){
+		printf("학번: %d\n", clientHead->client.clientStuId);
+		printf("비밀번호: %s\n", clientHead->client.clientPw);
+		printf("이름: %s\n", clientHead->client.clientName);
+		printf("주소: %s\n", clientHead->client.clientAddr);
+		printf("전화번호: %s\n", clientHead->client.clientTel);
+		printf("\n");
+		break;
+	  }
+	  else{
+		diff++;
+	  }
+	}
+
+	if(diff == CountLoop){
+	  printf("일치하는 학번이 없습니다.\n");
+	}
+	return true;
+  }
+
+  else if(num == 3){
+	printf("\n");
+	printf(">>회원 전체 목록<<\n");
+	while(clientHead->nextNode != NULL){
+	  clientHead = clientHead->nextNode;
+	  printf("학번: %d\n", clientHead->client.clientStuId);
+	  printf("비밀번호: %s\n", clientHead->client.clientPw);
+	  printf("이름: %s\n", clientHead->client.clientName);
+	  printf("주소: %s\n", clientHead->client.clientAddr);
+	  printf("전화번호: %s\n", clientHead->client.clientTel);
+	  printf("\n");
+	}
+	clientHead = NULL;
+	return true;
+  }
+
+  else if(num == 4){
+	return false;
+  }
+
+  else{
+	goto ClientListMenu;
+  }
+}/*회원목록을 보여주는 함수이다.
+   1. 이름 검색
+   이름을 입력받아 회원을 검색한다.
+   동명이인일 경우 모두 표시한다.
+   일치하는 이름이 없을 경우 메세지를 출력한다.
+
+   2. 학번 검색
+   학번을 입력받아 회원을 검색한다.
+   일치하는 학번이 없을 경우 메세지를 출력한다.
+
+   3. 전체 검색
+   client.txt 파일안에 있는 모든 회원들의 정보를 보여준다.
+
+   4. 이전 메뉴
+   관리자 메뉴로 돌아간다.*/
 
 char *NumToDay(struct tm* day){
   char *thatDay;
