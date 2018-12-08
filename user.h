@@ -1,24 +1,30 @@
 #include <stdio.h>
 #include "fileIO.h"
+#include <stdlib.h>
 
 #define SEARCH 1
 #define MY_BORROW 2
 #define MODIFY_CLIENT 3
-#define LOGOUT 4
-#define SHUT 5
+#define SECESSION 4
+#define LOGOUT 5
+#define SHUT 6
 
 void user_search(BookNode *);
 void printResult(BookNode *);
 int *checkAvailable(BookNode *, BookNode *);
 void printMyBorrow(BorrowNode *, Client );
 char *getBookNameById(BookNode *, int );
+void modifyClientInfo(ClientNode *);
+void modifyClientTel(ClientNode *, Client, char *);
+void modifyClientAddr(ClientNode *, Client, char *);
+void modifyClientPw(ClientNode *, Client, char *);
 
-Client myClient = { .clientStuId = 20170283 };
-BookNode *bookHead;
 
-int main(void){
+void user_service(){
 
-	bookHead = bookMemAlloc();
+	BookNode *bookHead = bookMemAlloc();
+	BorrowNode *borrowHead = borrowMemAlloc();
+	ClientNode *clientHead = clientMemAlloc();
 
 	printf("%d\n", myClient.clientStuId);
 
@@ -41,23 +47,126 @@ int main(void){
 			break;
 	
 		case MY_BORROW:
-			printMyBorrow(borrowMemAlloc(), myClient);
+			printMyBorrow(borrowHead,myClient);
 	
 			break;
-		case MODIFY_CLIENT:
+		case MODIFY_CLIENT:{
+			modifyClientInfo(clientHead);
+
+			break;
+			}
+		case SECESSION:
+			if(!removeClient(clientHead, borrowHead, myClient.clientStuId))
+				printf("탈퇴 불가능. 대여중인 도서가 존재합니다.\n");
+			else
+				return 0;
 
 			break;
 		case LOGOUT:
+			myClient = NULL;
+			return ;
 
 			break;
 		case SHUT:
-
+			exit(1);
 			break;
 
 		}
 	}
 
 }
+
+void modifyClientInfo(ClientNode *clientHead){ 
+
+	int changeInfoNum;
+
+	printf("\n어떤 정보를 수정하시겠습니까?\n");
+	printf("1.비밀번호 2.주소 3.전화번호\n");
+	scanf("%d", &changeInfoNum);
+
+	switch(changeInfoNum){
+
+		case 1:{
+			char pwTochange[50];
+			printf("바꿀 비밀번호를 입력해주세요: ");
+			scanf("%s", pwTochange);
+
+			modifyClientPw(clientHead, myClient, pwTochange);
+
+		break;
+		}
+		case 2:{
+			char addrTochange[100];
+			printf("바꿀 주소를 입력해주세요: ");
+			scanf("%s", addrTochange);
+
+			modifyClientAddr(clientHead, myClient, addrTochange);
+
+		break;
+		}
+		case 3:{
+			char telTochange[20];
+			printf("바굴 전화번호를 입력해주세요: ");
+			scanf("%s", telTochange);
+
+			modifyClientTel(clientHead, myClient, telTochange);
+
+		break;
+		}
+
+	}
+}
+
+void modifyClientTel(ClientNode *clientHead, Client myClient, char *telTochange){
+
+	ClientNode *clientCurr = clientHead->nextNode;
+
+	while(clientCurr != NULL){
+		
+		if(clientCurr->client.clientStuId == myClient.clientStuId){
+			strcpy(clientCurr->client.clientTel, telTochange);
+			save(CLIENT, clientHead);
+		}
+
+		clientCurr = clientCurr->nextNode;
+	}
+}
+
+void modifyClientAddr(ClientNode *clientHead, Client myClient, char *addrTochange){
+
+	ClientNode *clientCurr = clientHead->nextNode;
+
+	while(clientCurr != NULL){
+		
+		if(clientCurr->client.clientStuId == myClient.clientStuId){
+			strcpy(clientCurr->client.clientAddr, addrTochange);
+			save(CLIENT, clientHead);
+		}
+
+		clientCurr = clientCurr->nextNode;
+	}
+
+
+}
+
+void modifyClientPw(ClientNode *clientHead, Client myClient, char *pwTochange){
+
+	ClientNode *clientCurr = clientHead->nextNode;
+
+	while(clientCurr != NULL){
+		
+		if(clientCurr->client.clientStuId == myClient.clientStuId){
+			strcpy(clientCurr->client.clientPw, pwTochange);
+			save(CLIENT, clientHead);
+		}
+
+		clientCurr = clientCurr->nextNode;
+	}
+
+
+
+}
+
 
 void printMyBorrow(BorrowNode *head, Client myClient){
 	
