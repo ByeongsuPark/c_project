@@ -33,11 +33,13 @@ void SignUp(ClientNode *clienthead)
 
 	Client newclient = { tmpId, tmpPw, tmpName, tmpAddr, tmpTel };
 	
+	/*
 	printf("%d\n", newclient.clientStuId);
 	printf("%s\n", newclient.clientPw);
 	printf("%s\n", newclient.clientName);
 	printf("%s\n", newclient.clientAddr);
 	printf("%s\n", newclient.clientTel);
+	*/
 
 	addClient(clienthead, newclient);
 }
@@ -57,13 +59,23 @@ typedef struct _NowUserNode {
 int checkUser(ClientNode *head, NowUser nowUser)
 {
 	ClientNode *curr = head->nextNode;
+	char admin_passwd[20] = "lib_admin";
 
-	int tmp_userId;
+	int tmp_userId = 0;
 
 	while (curr != NULL)
 	{
 		if (strcmp(nowUser.userId, "admin") == 0)
-			return 2;
+		{
+			if (strcmp(nowUser.userPw, admin_passwd) == 0)
+				return 2;
+			else
+			{
+				printf("비밀번호가 틀렸습니다.\n");
+				return 3;
+			}
+		}
+
 		else
 		{
 			tmp_userId = atoi(nowUser.userId);
@@ -71,7 +83,7 @@ int checkUser(ClientNode *head, NowUser nowUser)
 				return 1;
 			else
 			{
-				printf("존재하지 않습니다.");
+				printf("존재하지 않습니다.\n");
 				return 3;
 			}
 		}
@@ -84,7 +96,7 @@ int main(void)
 	BookNode *bookhead = bookMemAlloc();
 	ClientNode *clienthead = clientMemAlloc();
 
-	NowUser nowUser;
+	NowUser nowUser = {"", ""};
 
 	printf(">> 도서관 서비스 <<\n");
 	printf("1. 회원 가입\t2. 로그인\t3. 프로그램 종료\n");
