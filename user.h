@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include "fileIO.h"
 #include <stdlib.h>
 
 #define SEARCH 1
@@ -12,21 +11,16 @@
 void user_search(BookNode *);
 void printResult(BookNode *);
 int *checkAvailable(BookNode *, BookNode *);
-void printMyBorrow(BorrowNode *, Client );
+void printMyBorrow(BorrowNode *,BookNode *, Client );
 char *getBookNameById(BookNode *, int );
-void modifyClientInfo(ClientNode *);
+void modifyClientInfo(ClientNode *, Client);
 void modifyClientTel(ClientNode *, Client, char *);
 void modifyClientAddr(ClientNode *, Client, char *);
 void modifyClientPw(ClientNode *, Client, char *);
 
 
-void user_service(){
+void user_service(Client myClient, BookNode *bookHead, BorrowNode *borrowHead, ClientNode *clientHead){
 
-	BookNode *bookHead = bookMemAlloc();
-	BorrowNode *borrowHead = borrowMemAlloc();
-	ClientNode *clientHead = clientMemAlloc();
-
-	printf("%d\n", myClient.clientStuId);
 
 	while(1){
 		int choice;
@@ -47,11 +41,11 @@ void user_service(){
 			break;
 	
 		case MY_BORROW:
-			printMyBorrow(borrowHead,myClient);
+			printMyBorrow(borrowHead,bookHead, myClient);
 	
 			break;
 		case MODIFY_CLIENT:{
-			modifyClientInfo(clientHead);
+			modifyClientInfo(clientHead, myClient);
 
 			break;
 			}
@@ -59,11 +53,10 @@ void user_service(){
 			if(!removeClient(clientHead, borrowHead, myClient.clientStuId))
 				printf("탈퇴 불가능. 대여중인 도서가 존재합니다.\n");
 			else
-				return 0;
+				return ;
 
 			break;
 		case LOGOUT:
-			myClient = NULL;
 			return ;
 
 			break;
@@ -76,7 +69,7 @@ void user_service(){
 
 }
 
-void modifyClientInfo(ClientNode *clientHead){ 
+void modifyClientInfo(ClientNode *clientHead, Client myClient){ 
 
 	int changeInfoNum;
 
@@ -168,10 +161,10 @@ void modifyClientPw(ClientNode *clientHead, Client myClient, char *pwTochange){
 }
 
 
-void printMyBorrow(BorrowNode *head, Client myClient){
+void printMyBorrow(BorrowNode *borrowHead, BookNode *bookHead, Client myClient){
 	
 	char *wday[7] = { "일", "월", "화", "수", "목", "금", "토"};
-	BorrowNode *curr = head->nextNode;
+	BorrowNode *curr = borrowHead->nextNode;
 
 	printf("\n>>내 대여 목록<<\n");
 	while( curr != NULL){

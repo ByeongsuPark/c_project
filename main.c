@@ -87,8 +87,9 @@ int checkUser(ClientNode *head, NowUser nowUser, Client *myClient)
 int main(void)
 {
 
-	BookNode *bookhead = bookMemAlloc();
-	ClientNode *clienthead = clientMemAlloc();
+	BookNode *bookHead = bookMemAlloc();
+	ClientNode *clientHead = clientMemAlloc();
+	BorrowNode *borrowHead = borrowMemAlloc();
 
 	NowUser nowUser;
 	Client myClient;
@@ -111,7 +112,7 @@ int main(void)
 		int num2;
 	// 회원 가입
 	case 1:
-		myClient = SignUp(clienthead);
+		myClient = SignUp(clientHead);
 		break; 
 
 	// 로그인
@@ -122,18 +123,17 @@ int main(void)
 		printf("비밀번호: ");
 		scanf("%s", nowUser.userPw);
 
-		num2 = checkUser(clienthead, nowUser, &myClient);
+		num2 = checkUser(clientHead, nowUser, &myClient);
 
 		// 사용자 판단 
 		switch (num2)
 		{
 		// 회원 메뉴 선택 화면 
+			case 0:
+				printf("로그인 불가. 학번이나 비밀번호를 확인해주세요\n");
+				break;
 			case 1:
-				if( myClient.clientStuId != -1) 
-					user_service(myClient);
-				else
-					printf("회원 정보가 없습니다. 회원가입을 먼저해주세요.\n");
-
+				user_service(myClient, bookHead, borrowHead, clientHead);
 				break;
 
 		// 관리자 메뉴 선택 화면
