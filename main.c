@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include "fileIO.h"
 #include "user.h"
+#include "admin.h"
 
 
 Client SignUp(ClientNode *clienthead)
@@ -138,8 +139,7 @@ int main(void)
 
 		// 관리자 메뉴 선택 화면
 			case 2:
-				printf(">> 관리자 메뉴 <<");
-				printf("1. 도서 등록\t2. 도서 삭제\n3.도서 대여\t4. 도서 반남\n5. 도서 검색\t6. 회원 목록\n7. 로그아웃\t8. 프로그램 종료\n");
+				admin_service();
 
 				break;
 			case 3:

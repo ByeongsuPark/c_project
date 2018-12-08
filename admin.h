@@ -1,4 +1,3 @@
-#include "fileIO.h"
 
 int maxBookId(){
   int savedat1, savedat2;
@@ -25,7 +24,7 @@ bool clientList();
 char *NumToDay(struct tm *);
 bool SearchBook(char *);
 
-int main(void){
+void admin_service(){
 AdminMenu:
   system("clear");
   printf(">>관리자 메뉴<<\n");
@@ -54,7 +53,7 @@ AdminMenu:
 	  ReturnBook();
   }
   else if(num == 5){
-	/*회원용 도서검색기능 그대로 사용*/
+	/*회원용 도그대로 사용*/
   }
   else if(num == 6){
 	  check = clientList();
@@ -63,7 +62,7 @@ AdminMenu:
 	  }
   }
   else if(num == 7){
-	/*도서관 서비스 초기화면으로 이동하는 함수 그대로 사용*/
+	  return ;
   }
   else if(num == 8){
 	  printf("프로그램을 종료합니다.");
@@ -72,7 +71,7 @@ AdminMenu:
   else{
 	  goto AdminMenu;
   }
-  return 0;
+  return ;
 }
 
   
