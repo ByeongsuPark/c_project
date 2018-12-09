@@ -144,7 +144,9 @@ int main(void)
 		getchar();
 		scanf("%s", nowUser.userPw);
 
-		num2 = checkUser(clientHead, nowUser, &myClient);
+		ClientNode *head;
+
+		num2 = checkUser(head, nowUser);
 
 		// 사용자 판단 
 		switch (num2)
