@@ -68,31 +68,38 @@ typedef struct _NowUserNode {
 } NowUserNode;
 
 // 로그인 사용자 계정 존재 여부 판단 -> 어느 권한으로 접속할지 판단 
-int checkUser(ClientNode *head, NowUser nowUser, Client *myClient)
+int checkUser(ClientNode *head, NowUser nowUser)
 {
 	ClientNode *curr = head->nextNode;
+	char admin_passwd[20] = "lib_admin";
 
-	int tmp_userId;
+	int tmp_userId = 0;
 
 	while (curr != NULL)
 	{
 		if (strcmp(nowUser.userId, "admin") == 0)
-			return 2;
-
-		tmp_userId = atoi(nowUser.userId);
-
-		if (curr->client.clientStuId == tmp_userId){
-			if(strcmp(curr->client.clientPw, nowUser.userPw) == 0)
-			{	
-				*myClient = curr->client;
-				return 1;
+		{
+			if (strcmp(nowUser.userPw, admin_passwd) == 0)
+				return 2;
+			else
+			{
+				printf("비밀번호가 틀렸습니다.\n");
+				return 3;
 			}
 		}
-		curr = curr->nextNode;
+
+		else
+		{
+			tmp_userId = atoi(nowUser.userId);
+			if (curr->client.clientStuId == tmp_userId)
+				return 1;
+			else
+			{
+				printf("존재하지 않습니다.\n");
+				return 3;
+			}
+		}
 	}
-
-	curr = head->nextNode;
-
 	return 0;
 }
 
