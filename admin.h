@@ -261,7 +261,6 @@ void ReturnBook(BorrowNode *borrowHead, BookNode *bookHead){
   bool check = false;
   char *tempBookName = NULL, *thatDay = NULL;
   struct tm *day;
-  time_t day_t;
   
   br_head = borrowHead;
   b_head = bookHead;
@@ -286,12 +285,10 @@ void ReturnBook(BorrowNode *borrowHead, BookNode *bookHead){
 	  printf("\n");
 	  printf("도서번호: %d\n",br_head->borrow.bookId);
 	  printf("도서명: %s\n", tempBookName);
-	  day_t = br_head->borrow.checkoutDay;
-	  day = localtime(&day_t);
+	  day = localtime(&br_head->borrow.checkoutDay);
 	  thatDay = NumToDay(day);
 	  printf("대여일자: %d년 %d월 %d일 %s\n", day->tm_year+1900, day->tm_mon+1, day->tm_mday, thatDay);
-	  day_t = br_head->borrow.returnDay;
-	  day = localtime(&day_t);
+	  day = localtime(&br_head->borrow.returnDay);
 	  thatDay = NumToDay(day);
 	  printf("반납일자: %d년 %d월 %d일 %s\n", day->tm_year+1900, day->tm_mon+1, day->tm_mday, thatDay);
 	  check = true;
