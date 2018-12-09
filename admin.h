@@ -1,7 +1,7 @@
 
-int maxBookId(){
+int maxBookId(BookNode *head){
   int savedat1, savedat2;
-  BookNode *head = bookMemAlloc(), *curr = NULL;
+  BookNode *curr = NULL;
   curr = head->nextNode;
   savedat1 = curr->book.bookId;
   while(curr->nextNode != NULL){
@@ -15,18 +15,17 @@ int maxBookId(){
   return savedat1;
 }/*파일에 있는 도서의 번호중 가장 큰 번호를 찾아 리턴해준다.*/
 
-void addNewBook();
-void delBook();
-void borrBook();
-void ReturnBook();
-bool clientList();
+void addNewBook(BookNode *);
+void delBook(BookNode *, BorrowNode *);
+void borrBook(ClientNode *, BookNode *, BorrowNode *);
+void ReturnBook(BorrowNode *, BookNode *);
+bool clientList(ClientNode *);
 
 char *NumToDay(struct tm *);
-bool SearchBook(char *);
+bool SearchBook(char *, BookNode *);
 
-void admin_service(){
+void admin_service(BookNode *bookHead, BorrowNode *borrowHead, ClientNode *clientHead){
 AdminMenu:
-  system("clear");
   printf(">>관리자 메뉴<<\n");
   printf("1. 도서 등록\t 2. 도서 삭제\n");
   printf("3. 도서 대여\t 4. 도서 반납\n");
@@ -40,23 +39,23 @@ AdminMenu:
   while(c = getchar() != '\n' && c != EOF);
 
   if(num == 1){
-	  addNewBook();
+	  addNewBook(bookHead);
   }
 
   else if(num == 2){
-	  delBook();
+	  delBook(bookHead, borrowHead);
   }
   else if(num == 3){
-	  borrBook();
+	  borrBook(clientHead, bookHead, borrowHead);
   }
   else if(num == 4){
-	  ReturnBook();
+	  ReturnBook(borrowHead, bookHead);
   }
   else if(num == 5){
-	/*회원용 도그대로 사용*/
+	  user_search(bookHead);	   
   }
   else if(num == 6){
-	  check = clientList();
+	  check = clientList(clientHead);
 	  if(check == false){
 		goto AdminMenu;
 	  }
@@ -66,26 +65,27 @@ AdminMenu:
   }
   else if(num == 8){
 	  printf("프로그램을 종료합니다.");
-	  system("exit");
+	  exit(1);
   }
   else{
 	  goto AdminMenu;
   }
-  return ;
+
+  goto AdminMenu;
 }
 
+
   
-void addNewBook(){
+void addNewBook(BookNode *head){
 	int c;
 	char YN;
 	bool check;
-	BookNode *head = NULL;
 	Book newbook;
 	char newbName[100];
 	char newbPublisher[100];
 	char newbAuthor[100];
 	char newbLocation[100];
-	int bookId = maxBookId()+1;
+	int bookId = maxBookId(head)+1;
 	
 	printf(">>도서 등록<<\n");
 	printf("\n");
@@ -112,7 +112,7 @@ void addNewBook(){
 	printf("\n");
 	printf("등록하시겠습니까? ");
 	YN = getchar();
-	if(YN == 'Y'){
+	if(YN == 'Y' || YN == 'y'){
 
 	newbook.bookName = malloc(sizeof(Book)*(strlen(newbName)+1));
 	newbook.bookPublisher = malloc(sizeof(Book)*(strlen(newbPublisher)+1));
@@ -127,7 +127,6 @@ void addNewBook(){
 	newbook.bookId = bookId;
 	newbook.isBookAvailable = 'Y';
 	
-	head = bookMemAlloc();
 	check = addBook(head, newbook);
 		if(check == true){
 			printf("도서가 등록되었습니다.\n");
@@ -135,32 +134,31 @@ void addNewBook(){
 		else{
 			printf("도서 등록에 실패했습니다.\n");
 		}
-	head = NULL;
-   }
+  	 
+	}
+	else
+		printf("도서 등록을 취소했습니다.\n");
+
 }/* 새 책의 정보를 입력받는다.  
 	bookMemAlloc함수를 통해 파일에 저장된 도서 목록을 연결리스트로 만들고 head에 연결리스트의 시작주소를 저장한다.
 	addBook함수를 통해 새 책의 정보를 담은 노드를 연결리스트에 추가하고 파일에 수정된 정보를 저장한다.*/
 
-void delBook(){
-	BookNode *bookHead = bookMemAlloc(), *head = NULL;
-	BorrowNode *borrowHead = borrowMemAlloc();
+void delBook(BookNode *bookHead, BorrowNode *borrowHead){
+
 	int targetBookId, c;
 	char *kind = "삭제";
 	bool check;
 
-	head = bookHead;
-
 	printf(">>도서 삭제<<\n");
-	check = SearchBook(kind);
+	check = SearchBook(kind, bookHead);
 	printf("\n");
 	if(check == true){
 		printf("삭제할 도서의 번호를 입력하세요: ");
 		scanf("%d", &targetBookId);
-		while(c = getchar() != '\n' && c != EOF);
-		while(head != NULL){
-		  head = head->nextNode;
-		  if(head->book.bookId == targetBookId){
-			check = removeBook(bookHead, borrowHead, targetBookId);	
+		printf("해당 도서번호는 %d\n", targetBookId);
+		printf("%d\n", borrowHead->nextNode->borrow.bookId);
+	//	while(c = getchar() != '\n' && c != EOF);
+		check = removeBook(bookHead, borrowHead, targetBookId);	
 			if(check == true){
 			  printf("도서가 삭제되었습니다.\n");
 			}
@@ -169,24 +167,23 @@ void delBook(){
 			}
 		  }
 		}
-	}
-}/* 삭제할 도서의 번호를 입력받는다.
+/* 삭제할 도서의 번호를 입력받는다.
 	removeBook함수를 통해 해당 도서를 삭제한다.*/
 
-void borrBook(){
+void borrBook(ClientNode *clientHead, BookNode *bookHead, BorrowNode *borrowHead){
   int targetStuId, targetBookId, c;
   char *kind = "대여";
   char YN;
   bool check;
   Borrow newBorrow;
-  ClientNode *clientHead = clientMemAlloc(), *c_head = NULL;
-  BookNode *bookHead = bookMemAlloc(), *b_head = NULL;
-  BorrowNode *borrowHead = borrowMemAlloc();
+  ClientNode  *c_head = NULL;
+  BookNode *b_head = NULL;
+
   c_head = clientHead;
   b_head = bookHead;
 
   printf(">>도서 대여<<\n");
-  check = SearchBook(kind);
+  check = SearchBook(kind, bookHead);
   printf("\n");
   if(check == true){
 	printf("학번을 입력하세요: ");
@@ -216,7 +213,7 @@ void borrBook(){
 	}
 
 	if(b_head->nextNode == NULL && b_head->book.bookId != targetBookId){
-	  printf("일치하는 도서번호가 업습니다.\n");
+	  printf("일치하는 도서번호가 없습니다.\n");
 	}
 	
 	else{
@@ -225,11 +222,12 @@ void borrBook(){
 		printf("이 도서를 대여합니까? ");
 		scanf("%c", &YN);
 		while(c = getchar() != '\n' && c != EOF);		
-		if(YN == 'Y'){
+		if(YN == 'Y' || YN == 'y'){
 		  struct tm* now;
 		  time_t now_t = time(NULL);
 		  now = localtime(&now_t);;
 
+		  printf("now_t: %d\n", (int)now_t);
 		  newBorrow.clientStuId = targetStuId;
 		  newBorrow.bookId = targetBookId;
 		  newBorrow.checkoutDay = now_t;
@@ -256,10 +254,10 @@ void borrBook(){
 }/*학번과 빌릴 도서의 번호를 입력받는다.
   addBorrow함수를 통해 변경된 정보를 book.txt와 borrow.txt.에 저장한다.*/
 	
-void ReturnBook(){
+void ReturnBook(BorrowNode *borrowHead, BookNode *bookHead){
   int targetStuId, targetBookId, c;
-  BorrowNode *borrowHead = borrowMemAlloc(), *br_head = NULL;
-  BookNode *bookHead = bookMemAlloc(), *b_head = NULL;
+  BorrowNode *br_head = NULL;
+  BookNode *b_head = NULL;
   bool check = false;
   char *tempBookName = NULL, *thatDay = NULL;
   struct tm *day;
@@ -319,7 +317,7 @@ void ReturnBook(){
 }/*학번을 입력받으면 회원이 대여한 도서의 목록을 보여준다.
    도서번호를 입력받아 도서를 반납한다.*/
 
-bool clientList(){
+bool clientList(ClientNode *clientHead){
 ClientListMenu:
   system("clear");
   printf(">>회원 목록<<\n");
@@ -329,7 +327,6 @@ ClientListMenu:
   printf("번호를 선택하세요: ");
   int num, c, diff=0, CountLoop=0, targetStuId;
   char targetStuName[30];
-  ClientNode *clientHead = clientMemAlloc();
   scanf("%d", &num);
   while(c = getchar() != '\n' && c != EOF);
 
@@ -443,9 +440,9 @@ char *NumToDay(struct tm* day){
   return thatDay;
 }/*월화수목금토일*/
 
-bool SearchBook(char *kind){
+bool SearchBook(char *kind, BookNode *head){
 	int num, c;
-	BookNode *head = bookMemAlloc();
+
 	BookNode *Search = NULL, *SearchNext = NULL, *SearchFollow = NULL;
 	Book value;
 	char valueBookName[100];
@@ -474,7 +471,7 @@ bool SearchBook(char *kind){
 		  printf(">>검색 결과<<");
 		  if(Search-> nextNode == NULL){
 			printf("\n");
-			printf("도서번호: %d(%s 가능 여부: %c)", Search->book.bookId, kind, Search->book.isBookAvailable);
+			printf("도서번호: %d(%s 가능 여부: %c)\n", Search->book.bookId, kind, Search->book.isBookAvailable);
 			printf("도서명: %s\n", Search->book.bookName);
 			printf("출판사: %s\n", Search->book.bookPublisher);
 			printf("저자명: %s\n", Search->book.bookAuthor);

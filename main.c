@@ -20,7 +20,6 @@ Client SignUp(ClientNode *clienthead)
 
 	printf("학번: ");
 	scanf("%d", &tmpId);
-	getchar();
 	printf("비밀번호: ");
 	scanf("%s", tmpPw);
 	getchar();
@@ -34,17 +33,27 @@ Client SignUp(ClientNode *clienthead)
 	scanf("%[^\n]", tmpTel);
 	getchar();
 
-	Client newclient = { tmpId, tmpPw, tmpName, tmpAddr, tmpTel };
+	Client newClient = { .clientStuId = tmpId};
+
+	newClient.clientPw = malloc(sizeof(char)*strlen(tmpPw)+1);
+	newClient.clientName = malloc(sizeof(char)*strlen(tmpName)+1);
+	newClient.clientAddr = malloc(sizeof(char)*strlen(tmpAddr)+1);
+	newClient.clientTel = malloc(sizeof(char)*strlen(tmpTel)+1);
+
+	strcpy(newClient.clientPw, tmpPw);
+	strcpy(newClient.clientName, tmpName);
+	strcpy(newClient.clientAddr, tmpAddr);
+	strcpy(newClient.clientTel, tmpTel);
 	
-	printf("%d\n", newclient.clientStuId);
-	printf("%s\n", newclient.clientPw);
-	printf("%s\n", newclient.clientName);
-	printf("%s\n", newclient.clientAddr);
-	printf("%s\n", newclient.clientTel);
+	printf("%d\n", newClient.clientStuId);
+	printf("%s\n", newClient.clientPw);
+	printf("%s\n", newClient.clientName);
+	printf("%s\n", newClient.clientAddr);
+	printf("%s\n", newClient.clientTel);
 
-	addClient(clienthead, newclient);
+	addClient(clienthead, newClient);
 
-	return newclient;
+	return newClient;
 }
 
 // 로그인 사용자 Id/Pw 
@@ -72,15 +81,17 @@ int checkUser(ClientNode *head, NowUser nowUser, Client *myClient)
 
 		tmp_userId = atoi(nowUser.userId);
 
-		if (curr->client.clientStuId == tmp_userId)
+		if (curr->client.clientStuId == tmp_userId){
 			if(strcmp(curr->client.clientPw, nowUser.userPw) == 0)
 			{	
 				*myClient = curr->client;
 				return 1;
 			}
-
+		}
 		curr = curr->nextNode;
 	}
+
+	curr = head->nextNode;
 
 	return 0;
 }
@@ -120,8 +131,10 @@ int main(void)
 	case 2:
 		printf(">> 로그인 <<\n");
 		printf("학번: ");
+		getchar();
 		scanf("%s", nowUser.userId);
 		printf("비밀번호: ");
+		getchar();
 		scanf("%s", nowUser.userPw);
 
 		num2 = checkUser(clientHead, nowUser, &myClient);
@@ -132,6 +145,7 @@ int main(void)
 		// 회원 메뉴 선택 화면 
 			case 0:
 				printf("로그인 불가. 학번이나 비밀번호를 확인해주세요\n");
+				printf("가입한 계정 : %d\n", myClient.clientStuId);
 				break;
 			case 1:
 				user_service(myClient, bookHead, borrowHead, clientHead);
@@ -139,7 +153,7 @@ int main(void)
 
 		// 관리자 메뉴 선택 화면
 			case 2:
-				admin_service();
+				admin_service(bookHead, borrowHead, clientHead);
 
 				break;
 			case 3:
@@ -148,6 +162,8 @@ int main(void)
 
 
 		}
+
+		break;
 	}
 
 	}

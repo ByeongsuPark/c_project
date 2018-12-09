@@ -170,33 +170,44 @@ void printMyBorrow(BorrowNode *borrowHead, BookNode *bookHead, Client myClient){
 	while( curr != NULL){
 
 		if( curr->borrow.clientStuId == myClient.clientStuId){
-			printf("%d 학번의 대여 이력 발견\n", myClient.clientStuId);
-			time_t borrowTime = (time_t)curr->borrow.checkoutDay;
-			time_t returnTime = (time_t)curr->borrow.returnDay;
 
-			struct tm *borrow_t = localtime(&borrowTime);
-			struct tm *return_t = localtime(&returnTime);
+			time_t borrowTime = time(&curr->borrow.checkoutDay);
+			time_t returnTime = time(&curr->borrow.returnDay);
+
+			struct tm borrow_t;
+			localtime_r(&borrowTime, &borrow_t);
+			struct tm return_t;
+			localtime_r(&returnTime, &return_t);
 
 
 			printf("도서번호 : %d\n", curr->borrow.bookId);
 			printf("도서명 : %s\n", getBookNameById(bookHead, curr->borrow.bookId));
 			printf("대여일자: %d년 %d월 %d일 %s요일\n",
-				borrow_t->tm_year + 1900,
-				borrow_t->tm_mon + 1,
-				borrow_t->tm_mday,
-				wday[borrow_t->tm_wday]);
+				borrow_t.tm_year + 1900,
+				borrow_t.tm_mon + 1,
+				borrow_t.tm_mday,
+				wday[borrow_t.tm_wday]);
 
 			printf("반납일자: %d년 %d월 %d일 %s요일\n",
-				return_t->tm_year + 1900,
-				return_t->tm_mon + 1,
-				return_t->tm_mday,
-				wday[return_t->tm_wday]);
+				return_t.tm_year + 1900,
+				return_t.tm_mon + 1,
+				return_t.tm_mday,
+				wday[return_t.tm_wday]);
 
 		}
 
 
 		curr = curr->nextNode;
 
+	}
+
+	curr = borrowHead->nextNode;
+
+	while( curr != NULL){
+		printf("%d %d\n", (int)curr->borrow.checkoutDay,
+				(int)curr->borrow.returnDay);
+
+		curr = curr->nextNode;
 	}
 
 
@@ -229,7 +240,6 @@ void user_search(BookNode *head){
 	char temp[50];
 	Book value;
 
-	getchar();
 	scanf("%d", &choice);
 
 	switch(choice){
